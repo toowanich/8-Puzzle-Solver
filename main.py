@@ -66,7 +66,6 @@ def findNearbyNode(zpos):
     return nearbyString
 
 def createStates(currentState):
-    print("GENERATING STATES BITCH")
     zpos = currentPos(0,currentState)
     nearbyString=findNearbyNode(zpos)
     zpos = int(stringPos(zpos))
@@ -82,38 +81,53 @@ def createStates(currentState):
         #print(currentState[:a],currentState[b],currentState[a+1:b],currentState[a],currentState[b+1:])
         nextStates.append(currentState[:a]+currentState[b]+currentState[a+1:b]+currentState[a]+currentState[b+1:])
     return nextStates
+
 def process(state,queue,i):
     weight = totalWeight(state)
     queue.put(AnyNode(state = state, weight = weight))
     #print(nodes)
     #print(RenderTree(parent))
+def populate(nextStates, queue):
+    for i in range(len(nextStates)):
+        p.append(Process(target=process, args=(nextStates[i],queue,i,)))
+        p[i].start()
+    for i in range(len(nextStates)):
+        p[i].join()
+    for i in range(1,queue.qsize()):
+        temp = queue.get()
+        temp.parent = nodes[parentNode]
+        nodes.append(temp)
 
 if __name__=='__main__':
     #q = input('Enter ?')
     queue = Queue()
     q = "123405678"
     p = []
-    with Manager() as manager:
+    nodes = []
+    leaves = []
 
-        nodes = []
+    with Manager() as manager:
         print(q)
         if(isValid(q)):
             nodes.append(AnyNode(state = q, weight = totalWeight(q)))
             current = 0
             parentNode = 0
             nextStates = createStates(q)
-            for i in range(len(nextStates)):
-                p.append(Process(target=process, args=(nextStates[i],queue,i,)))
-                p[i].start()
-            for i in range(len(nextStates)):
-                p[i].join()
-            for i in range(1,queue.qsize()):
-                temp = queue.get()
-                nodes.append(temp)
-                nodes[current+i].parent = nodes[0]
+            populate(nextStates,queue)
+            # for i in range(len(nextStates)):
+            #     p.append(Process(target=process, args=(nextStates[i],queue,i,)))
+            #     p[i].start()
+            # for i in range(len(nextStates)):
+            #     p[i].join()
+            # for i in range(1,queue.qsize()):
+            #     temp = queue.get()
+            #     temp.parent = nodes[parentNode]
+            #     nodes.append(temp)
 
 
 
             #print(nodes)
             current =len(nodes)-1
             print(RenderTree(nodes[0]))
+        else:
+            print("Not Valid")
