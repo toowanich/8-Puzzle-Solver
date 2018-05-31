@@ -91,24 +91,29 @@ def process(state,queue,i):
 if __name__=='__main__':
     #q = input('Enter ?')
     queue = Queue()
+    q = "123405678"
+    p = []
     with Manager() as manager:
-        q = "123405678"
-        p = []
-        nodes = manager.list()
+
+        nodes = []
         print(q)
         if(isValid(q)):
-            nodes.append(AnyNode(id = "root", state = q))
+            nodes.append(AnyNode(state = q, weight = totalWeight(q)))
             current = 0
-            parentNode = nodes[0]
+            parentNode = 0
             nextStates = createStates(q)
             for i in range(len(nextStates)):
                 p.append(Process(target=process, args=(nextStates[i],queue,i,)))
                 p[i].start()
             for i in range(len(nextStates)):
                 p[i].join()
-            for i in range(current+1, queue.qsize()):
-                print(queue.get())
+            for i in range(1,queue.qsize()):
+                temp = queue.get()
+                nodes.append(temp)
+                nodes[current+i].parent = nodes[0]
+
+
 
             #print(nodes)
-            current +=len(nodes)-1
+            current =len(nodes)-1
             print(RenderTree(nodes[0]))
