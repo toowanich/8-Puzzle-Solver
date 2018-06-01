@@ -131,12 +131,16 @@ def minLeaf(l,n):
             min = n[leaf].weight
             node = leaf
     return node
-
+def printStep(step):
+    for i in range(0,7,3):
+        print("+---"*3+"+")
+        print('| '+step.state[i]+' | '+step.state[i+1]+' | '+step.state[i+2]+' |')
+    print("+---"*3+"+")
 if __name__=='__main__':
     #q = input('Enter ?')
 
-    #q = input("Input your puzzle state:")
-    q = "123405678"
+    q = input("Input your puzzle state: ")
+    #q = "123405678"
     nodes = []
     leaves = []
     visited = set()
@@ -158,8 +162,9 @@ if __name__=='__main__':
             leaves.remove(parentNode)
             current =len(nodes)-1
         path = nodes[parentNode].path
-        for step in path:
-            print(step.state)
+        for step,n in zip(path,range(len(path))):
+            print("Step",n)
+            printStep(step)
         #print(RenderTree(nodes[0]))
     else:
         print("Not Valid")
