@@ -4,8 +4,8 @@
 #   | 7 | 8 | 9 |
 # U - Up | D - Down - | L - Left | R - Right
 import math
-from multiprocessing import Process, Manager, Queue
-from anytree import AnyNode, RenderTree
+from multiprocessing import Process, Queue
+from anytree import *
 
 finished = "123456780" #for reference
 def totalWeight(x): #Finds the total weight (using manhattan distance)
@@ -56,7 +56,9 @@ def isValid(state):
         return True
 def findNearbyNode(zpos):
     nearbyNode=[]
-    for i,j in [(1,0),(-1,0),(0,1),(0,-1)]:
+    pos = [(1,0),(-1,0),(0,1),(0,-1)]
+
+    for i,j in pos:
         nbNode = (zpos[0]+i,zpos[1]+j)
         if(not(nbNode[0]>2 or nbNode[0]<0 or nbNode[1]>2 or nbNode[1]<0)):
             nearbyNode.append(nbNode)
@@ -65,10 +67,10 @@ def findNearbyNode(zpos):
         nearbyString.append(stringPos(nearbyNode[i]))
     return nearbyString
 
-def createStates(currentState):
+def createStates(currentState, visited):
     zpos = currentPos(0,currentState)
-    nearbyString=findNearbyNode(zpos)
     zpos = int(stringPos(zpos))
+    nearbyString=findNearbyNode(zpos)
     nextStates=[]
     for s in nearbyString:
         temp = int(currentState[s])
@@ -79,7 +81,11 @@ def createStates(currentState):
             b = zpos
             a = s
         #print(currentState[:a],currentState[b],currentState[a+1:b],currentState[a],currentState[b+1:])
-        nextStates.append(currentState[:a]+currentState[b]+currentState[a+1:b]+currentState[a]+currentState[b+1:])
+        temp = currentState[:a]+currentState[b]+currentState[a+1:b]+currentState[a]+currentState[b+1:]
+        if(temp not in visited):
+            print(temp)
+            nextStates.append(temp)
+            visited.add(temp)
     return nextStates
 
 def process(state,queue,i):
@@ -87,47 +93,49 @@ def process(state,queue,i):
     queue.put(AnyNode(state = state, weight = weight))
     #print(nodes)
     #print(RenderTree(parent))
-def populate(nextStates, queue):
+def populate(nextStates,parentNode, q,n,l):
+    p = []
     for i in range(len(nextStates)):
         p.append(Process(target=process, args=(nextStates[i],queue,i,)))
         p[i].start()
     for i in range(len(nextStates)):
         p[i].join()
-    for i in range(1,queue.qsize()):
-        temp = queue.get()
-        temp.parent = nodes[parentNode]
-        nodes.append(temp)
+    for i in range(1,q.qsize()):
+        temp = q.get()
+        temp.parent = n[parentNode]
+        n.append(temp)
+        l.append(len(n)-1)
+def minLeaf(l,n):
+    min = 999
+    for leaf in l:
+        if(n[leaf].weight < min):
+            min = n[leaf].weight
+            node = leaf
+    return node
 
 if __name__=='__main__':
     #q = input('Enter ?')
     queue = Queue()
     q = "123405678"
-    p = []
     nodes = []
     leaves = []
+    visited = set()
+    visited.add(q)
+    currentState = q
+    leaves.append(0)
+    nodes.append(AnyNode(state = q, weight = totalWeight(q)))
+    print("Starting State: "+q)
 
-    with Manager() as manager:
-        print(q)
-        if(isValid(q)):
-            nodes.append(AnyNode(state = q, weight = totalWeight(q)))
-            current = 0
-            parentNode = 0
-            nextStates = createStates(q)
-            populate(nextStates,queue)
-            # for i in range(len(nextStates)):
-            #     p.append(Process(target=process, args=(nextStates[i],queue,i,)))
-            #     p[i].start()
-            # for i in range(len(nextStates)):
-            #     p[i].join()
-            # for i in range(1,queue.qsize()):
-            #     temp = queue.get()
-            #     temp.parent = nodes[parentNode]
-            #     nodes.append(temp)
-
-
-
-            #print(nodes)
+    if(isValid(q)):
+        for i in range(20):
+            current = len(nodes)-1
+            parentNode = minLeaf(leaves,nodes)
+            if(nodes[parentNode].state == finished):
+                break
+            nextStates = createStates(nodes[parentNode].state, visited)
+            populate(nextStates,parentNode,queue,nodes,leaves)
+            leaves.remove(parentNode)
             current =len(nodes)-1
-            print(RenderTree(nodes[0]))
-        else:
-            print("Not Valid")
+        print(RenderTree(nodes[0]))
+    else:
+        print("Not Valid")
