@@ -51,7 +51,31 @@ def isValid(state):
         return False
     else:
         return True
+# def createStates(currentState, visited):
+#     zero = currentPos(0,currentState)
+#     nextStates = []
+#     currentState = list(currentState)
+#     pos = []
+#     if(zero%3 <=1):
+#         pos.append(zero+1)
+#     if(zero%3 >=1):
+#         pos.append(zero-1)
+#     if(math.floor(zero/3) <=1):
+#         pos.append(zero+3)
+#     if(math.floor(zero/3) >=1):
+#         pos.append(zero-3)
+#     for x in pos:
+#         new = currentState.copy()
+#         new[zero],new[x] = new[x],new[zero]
+#         check = ''.join(map(str, new))
+#         if(check not in visited):
+#             visited.add(check)
+#             nextStates.append(check)
+#     #print(nextStates)
+#     return nextStates
 def createStates(currentState, visited):
+    p=[]
+    q = Queue()
     zero = currentPos(0,currentState)
     nextStates = []
     currentState = list(currentState)
@@ -64,15 +88,23 @@ def createStates(currentState, visited):
         pos.append(zero+3)
     if(math.floor(zero/3) >=1):
         pos.append(zero-3)
-    for x in pos:
-        new = currentState.copy()
-        new[zero],new[x] = new[x],new[zero]
-        check = ''.join(map(str, new))
+    for i in range(len(pos)):
+        p.append(Process(target=generate, args=(pos[i],currentState,zero,q)))
+        p[i].start()
+    for i in range(len(pos)):
+        p[i].join()
+    while(q.empty() != True):
+        check = q.get()
         if(check not in visited):
             visited.add(check)
             nextStates.append(check)
-    print(nextStates)
     return nextStates
+    #print(nextStates)
+def generate(x,currentState,zero,queue):
+        new = currentState.copy()
+        new[zero],new[x] = new[x],new[zero]
+        check = ''.join(map(str, new))
+        queue.put(check)
 
 def process(state,queue,i):
     weight = totalWeight(state)
@@ -103,6 +135,7 @@ def minLeaf(l,n):
 if __name__=='__main__':
     #q = input('Enter ?')
 
+    #q = input("Input your puzzle state:")
     q = "123405678"
     nodes = []
     leaves = []
@@ -117,15 +150,16 @@ if __name__=='__main__':
         while(1):
             current = len(nodes)-1
             parentNode = minLeaf(leaves,nodes)
-            print(nodes[parentNode])
+            #print(nodes[parentNode])
             if(nodes[parentNode].state == finished):
                 break
             nextStates = createStates(nodes[parentNode].state, visited)
             populate(nextStates,parentNode,nodes,leaves)
             leaves.remove(parentNode)
             current =len(nodes)-1
-
-        print(nodes[parentNode].path)
+        path = nodes[parentNode].path
+        for step in path:
+            print(step.state)
         #print(RenderTree(nodes[0]))
     else:
         print("Not Valid")
