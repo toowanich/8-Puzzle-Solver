@@ -51,6 +51,7 @@ def isValid(state):
         return False
     else:
         return True
+#Sequential Version
 # def createStates(currentState, visited):
 #     zero = currentPos(0,currentState)
 #     nextStates = []
