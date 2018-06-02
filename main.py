@@ -149,7 +149,8 @@ if __name__=='__main__':
     currentState = q
     leaves.append(0)
     nodes.append(AnyNode(state = q, weight = totalWeight(q)))
-    print("Starting State: "+q)
+    print("Starting State: ")
+    printStep(nodes[0])
 
     if(isValid(q)):
         while(1):
